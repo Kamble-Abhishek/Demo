@@ -1,0 +1,44 @@
+using System;
+using System.Windows.Documents;
+using System.Windows.Markup;
+
+class Program
+{
+    static void Main()
+    {
+        // Your rich text in RTF format
+        string richText = "{\\rtf1\\ansi\\ansicpg1252\\deff0\\nouicompat\\deflang1033{\\fonttbl{\\f0\\fnil\\fcharset0 Calibri;}}\r\n{\\*\\generator Riched20 10.0.18362}\\viewkind4\\uc1 \r\n\\pard\\sa200\\sl276\\slmult1\\f0\\fs22\\lang9 This is \\b bold\\b0  and \\i italic\\i0  text.\\par\r\n}\r\n";
+
+        // Convert RTF to XAML
+        string xamlText = ConvertRtfToXaml(richText);
+
+        // Convert XAML to HTML
+        string htmlText = ConvertXamlToHtml(xamlText);
+
+        // Output the HTML
+        Console.WriteLine(htmlText);
+    }
+
+    static string ConvertRtfToXaml(string rtfText)
+    {
+        var textRange = new TextRange(new System.Windows.Documents.FlowDocument(), new System.Windows.Documents.TextPointer(0));
+        using (var memoryStream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(rtfText)))
+        {
+            textRange.Load(memoryStream, DataFormats.Rtf);
+        }
+        using (var memoryStream = new System.IO.MemoryStream())
+        {
+            textRange.Save(memoryStream, DataFormats.Xaml);
+            return System.Text.Encoding.UTF8.GetString(memoryStream.ToArray());
+        }
+    }
+
+    static string ConvertXamlToHtml(string xamlText)
+    {
+        var flowDocument = (System.Windows.Documents.FlowDocument)XamlReader.Parse(xamlText);
+        var stringWriter = new System.IO.StringWriter();
+        var xmlTextWriter = new System.Xml.XmlTextWriter(stringWriter);
+        System.Windows.Markup.XamlWriter.Save(flowDocument, xmlTextWriter);
+        return stringWriter.ToString();
+    }
+}
